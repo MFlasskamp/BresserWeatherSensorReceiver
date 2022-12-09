@@ -60,11 +60,14 @@ uint32_t const sensor_ids_inc[] = {};
 //uint32_t const sensor_ids_inc[] = { 0x83750871 };
 
 // Use pinning for LoRaWAN Node 
-#define LORAWAN_NODE
+//#define LORAWAN_NODE
 
 // Use pinning for TTGO ESP32 boards with integrated RF tranceiver (SX1276)
 // https://github.com/espressif/arduino-esp32/tree/master/variants/ttgo-lora32-*
 //#define TTGO_LORA32
+
+// Heltec Wireless Stick Litre V3
+#define HTIT_WSL_V3
 
 // Disable data type which will not be used to save RAM
 #define WIND_DATA_FLOATINGPOINT
@@ -76,22 +79,25 @@ uint32_t const sensor_ids_inc[] = {};
 
 // Select type of receiver module
 //#define USE_CC1101
-#define USE_SX1276
+//#define USE_SX1276
+#define USE_SX1262
 
 #if ( !defined(BRESSER_5_IN_1) && !defined(BRESSER_6_IN_1) )
     #error "Either BRESSER_5_IN_1 and/or BRESSER_6_IN_1 must be defined!"
 #endif
 
-#if ( defined(USE_CC1101) && defined(USE_SX1276) )
-    #error "Either USE_CC1101 OR USE_SX1276 must be defined!"
+#if ( defined(USE_CC1101) && defined(USE_SX1276) && defined(USE_SX1262) )
+    #error "Either USE_CC1101 OR USE_SX1276 OR USE_SX1262 must be defined!"
 #endif
 
 #if defined(USE_CC1101)
     #define RECEIVER_CHIP F("[CC1101]")
 #elif defined(USE_SX1276)
     #define RECEIVER_CHIP F("[SX1276]")
+#elif defined(USE_SX1262)
+    #define RECEIVER_CHIP F("[SX1262]")
 #else
-    #error "Either USE_CC1101 or USE_SX1276 must be defined!"
+    #error "Either USE_CC1101 or USE_SX1276 or USE_SX1262 must be defined!"
 #endif
 
 #define DEBUG_PORT Serial
@@ -154,6 +160,12 @@ uint32_t const sensor_ids_inc[] = {};
     
     // RFM95W/SX127x - GPIOxx / CC1101 - RADIOLIB_NC
     #define PIN_RECEIVER_RST  2
+
+#elif defined(HTIT_WSL_V3)
+    #define PIN_RECEIVER_CS   8
+    #define PIN_RECEIVER_IRQ  14
+    #define PIN_RECEIVER_GPIO 13
+    #define PIN_RECEIVER_RST  12
 #endif
 
 #endif

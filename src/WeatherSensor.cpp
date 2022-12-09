@@ -59,11 +59,12 @@
 #include "WeatherSensorCfg.h"
 #include "WeatherSensor.h"
 
-#if defined(USE_CC1101)
+#if defined USE_CC1101
     static CC1101 radio = new Module(PIN_RECEIVER_CS, PIN_RECEIVER_IRQ, RADIOLIB_NC, PIN_RECEIVER_GPIO);
-#endif
-#if defined(USE_SX1276)
+#elif defined USE_SX1276
     static SX1276 radio = new Module(PIN_RECEIVER_CS, PIN_RECEIVER_IRQ, PIN_RECEIVER_RST, PIN_RECEIVER_GPIO);
+#elif defined USE_SX1262
+    static SX1262 radio = new Module(PIN_RECEIVER_CS, PIN_RECEIVER_IRQ, PIN_RECEIVER_RST, PIN_RECEIVER_GPIO);
 #endif
 
 int16_t WeatherSensor::begin(void) {
@@ -77,10 +78,12 @@ int16_t WeatherSensor::begin(void) {
     // Rx bandwidth:                        270.0 kHz (CC1101) / 250 kHz (SX1276)
     // output power:                        10 dBm
     // preamble length:                     40 bits
-    #ifdef USE_CC1101
+    #if defined USE_CC1101
         int state = radio.begin(868.3, 8.21, 57.136417, 270, 10, 32);
-    #else
+    #elif defined USE_SX1276
         int state = radio.beginFSK(868.3, 8.21, 57.136417, 250, 10, 32);
+    #else //#elif defined USE_SX1262
+        int state = radio.beginFSK(868.3, 8.21, 57.136417, 234.3, 10, 32);
     #endif
     if (state == RADIOLIB_ERR_NONE) {
         DEBUG_PRINTLN("success!");
