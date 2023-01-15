@@ -66,6 +66,7 @@
 // 20220815 Created from BresserWeatherSensorMQTT
 // 20221006 Modified secure/non-secure client implementation
 //          Modified string buffer size handling
+// 20221227 Replaced DEBUG_PRINT/DEBUG_PRINTLN by Arduino logging functions
 //
 // ToDo:
 // 
@@ -449,6 +450,7 @@ void publishRadio(void)
 //
 void setup() {
     Serial.begin(115200);
+    Serial.setDebugOutput(true);
     Serial.println();
     Serial.println();
     Serial.println(sketch_id);
@@ -527,7 +529,7 @@ void loop() {
 
     bool decode_ok = false;
     #ifdef _DEBUG_MQTT_
-        decode_ok = genWeatherdata(0 /* slot */, 0x01234567 /* ID */, 1 /* type */, 0 /* channel */);
+        decode_ok = weatherSensor.genMessage(0 /* slot */, 0x01234567 /* ID */, 1 /* type */, 0 /* channel */);
     #else
         // Clear sensor data buffer
         weatherSensor.clearSlots();

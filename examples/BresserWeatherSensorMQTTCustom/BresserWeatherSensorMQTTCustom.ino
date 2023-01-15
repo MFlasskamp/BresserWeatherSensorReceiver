@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// BresserWeatherSensorMQTT.ino
+// BresserWeatherSensorMQTTCustom.ino
 //
 // Example for BresserWeatherSensorReceiver - 
 // this is finally a useful application.
@@ -27,7 +27,7 @@
 // Based on:
 // arduino-mqtt Joël Gähwiler (256dpi) (https://github.com/256dpi/arduino-mqtt)
 // ArduinoJson by Benoit Blanchon (https://arduinojson.org)
-
+//
 // MQTT subscriptions:
 //     - none -
 //
@@ -84,6 +84,8 @@
 //          Changed weatherSensor.getData() parameter 'flags' from DATA_ALL_SLOTS to DATA_COMPLETE
 //          to provide data even if less sensors than expected (NUM_SENSORS) have been received.
 // 20221024 Modified WeatherSensorCfg.h/WeatherSensor.h handling
+// 20221227 Replaced DEBUG_PRINT/DEBUG_PRINTLN by Arduino logging functions
+// 20230114 Fixed rain gauge update
 //
 // ToDo:
 // 
@@ -417,7 +419,7 @@ void publishWeatherdata(bool complete)
       if (weatherSensor.sensor[i].rain_ok) {
           struct tm timeinfo;
           gmtime_r(&now, &timeinfo);
-          rainGauge.update(timeinfo, now, weatherSensor.sensor[i].rain_mm);
+          rainGauge.update(timeinfo, weatherSensor.sensor[i].rain_mm);
       }
       
       // Example:
@@ -519,6 +521,7 @@ void publishRadio(void)
 //
 void setup() {
     Serial.begin(115200);
+    Serial.setDebugOutput(true);
     Serial.println();
     Serial.println();
     Serial.println(sketch_id);
@@ -598,7 +601,7 @@ void loop() {
 
     bool decode_ok = false;
     #ifdef _DEBUG_MQTT_
-        decode_ok = genWeatherdata(0 /* slot */, 0x01234567 /* ID */, 1 /* type */, 0 /* channel */);
+        decode_ok = weatherSensor.genMessage(0 /* slot */, 0x01234567 /* ID */, 1 /* type */, 0 /* channel */);
     #else
         // Clear sensor data buffer
         weatherSensor.clearSlots();
@@ -630,13 +633,11 @@ void loop() {
 
     // Go to sleep only after complete set of data has been sent
     if (SLEEP_EN && (decode_ok || force_sleep)) {
-        #ifdef _DEBUG_MODE_
-            if (force_sleep) {
-                Serial.println(F("Awake time-out!"));
-            } else {
-                Serial.println(F("Data forwarding completed.")); 
-            }
-        #endif
+        if (force_sleep) {
+            log_d("Awake time-out!");
+        } else {
+            log_d("Data forwarding completed."); 
+        }
         Serial.printf("Sleeping for %d ms\n", SLEEP_INTERVAL);
         Serial.printf("%s: %s\n", mqttPubStatus, "offline");
         Serial.flush();
